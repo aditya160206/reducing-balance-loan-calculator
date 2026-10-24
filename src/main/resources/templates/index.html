@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Mathematics Engine</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Loan Mathematics Engine</h1>
+        <form id="loanForm">
+            <label for="principal">Principal (P):</label>
+            <input type="number" id="principal" name="principal" required min="0" step="0.01">
+            
+            <label for="interestRate">Annual Nominal Interest Rate (R %):</label>
+            <input type="number" id="interestRate" name="interestRate" required min="0" step="0.01">
+            
+            <label for="tenure">Loan Tenure (T in years):</label>
+            <input type="number" id="tenure" name="tenure" required min="1">
+            
+            <button type="submit">Calculate</button>
+        </form>
+
+        <div id="results" style="display:none;">
+            <h2>Calculation Results</h2>
+            <p>Monthly EMI: <span id="monthlyEMI"></span></p>
+            <p>Total Amount Paid: <span id="totalAmountPaid"></span></p>
+            <p>Total Interest Paid: <span id="totalInterestPaid"></span></p>
+            <h3>Amortization Schedule</h3>
+            <table id="amortizationTable">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>EMI</th>
+                        <th>Interest</th>
+                        <th>Principal Repaid</th>
+                        <th>Remaining Balance</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="mathDerivation">
+            <h2>Mathematical Derivation</h2>
+            <p>
+                Let <strong>P</strong> be the initial principal, <strong>A</strong> the fixed monthly payment, <strong>r</strong> the monthly interest rate, and <strong>n</strong> the number of monthly payments.
+            </p>
+            <p>
+                The present value of the repayments must equal the original principal:
+            </p>
+            <p>
+                <strong>P = A * (1/(1+r) + 1/(1+r)^2 + ... + 1/(1+r)^n)</strong>
+            </p>
+            <p>
+                Factor out <strong>A</strong>:
+            </p>
+            <p>
+                <strong>P = A * [1/(1+r) + 1/(1+r)^2 + ... + 1/(1+r)^n]</strong>
+            </p>
+            <p>
+                This is a finite geometric series with first term <strong>a = 1/(1+r)</strong> and common ratio <strong>q = 1/(1+r)</strong>.
+            </p>
+            <p>
+                Using the finite geometric-series identity:
+            </p>
+            <p>
+                <strong>S_n = a * (1 - q^n) / (1 - q)</strong>
+            </p>
+            <p>
+                Substituting and simplifying gives:
+            </p>
+            <p>
+                <strong>P = A * (1 - (1+r)^-n) / r</strong>
+            </p>
+            <p>
+                Rearranging leads to the EMI formula:
+            </p>
+            <p>
+                <strong>A = P * (r * (1+r)^n) / ((1+r)^n - 1)</strong>
+            </p>
+            <p>
+                Where <strong>r = R / 1200</strong> and <strong>n = 12 * T</strong>. If <strong>r = 0</strong>, then <strong>A = P / n</strong>.
+            </p>
+            <p>
+                Discounting future payments by powers of <strong>(1+r)</strong> converts them to present value, reflecting the time value of money.
+            </p>
+        </div>
+    </div>
+    <script>
+        document.getElementById('loanForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            // Add logic to send data to the backend and handle the response
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loan Calculator</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="card calculator-card">
+        <div class="eyebrow">Loan calculator</div>
+        <h1>Plan your monthly EMI</h1>
+
+        <form id="loanForm" class="loan-form">
+          <label>
+            <span>Principal</span>
+            <input id="principal" name="principal" type="number" min="1" step="0.01" placeholder="100000" required />
+          </label>
+
+          <label>
+            <span>Annual interest rate</span>
+            <div class="input-with-suffix">
+              <input id="annualInterestRate" name="annualInterestRate" type="number" min="0" step="0.01" placeholder="5" required />
+              <span>%</span>
+            </div>
+          </label>
+
+          <label>
+            <span>Tenure</span>
+            <div class="input-with-suffix">
+              <input id="tenureInYears" name="tenureInYears" type="number" min="1" step="1" placeholder="10" required />
+              <span>years</span>
+            </div>
+          </label>
+
+          <button type="submit">Calculate EMI</button>
+        </form>
+
+        <div id="errorBox" class="message error" hidden></div>
+
+        <div id="resultBox" class="results" hidden>
+          <div class="result-grid">
+            <div>
+              <small>Monthly EMI</small>
+              <strong id="monthlyEMI">₹0.00</strong>
+            </div>
+            <div>
+              <small>Total paid</small>
+              <strong id="totalAmountPaid">₹0.00</strong>
+            </div>
+            <div>
+              <small>Total interest</small>
+              <strong id="totalInterestPaid">₹0.00</strong>
+            </div>
+          </div>
+
+          <section class="formula-box" aria-labelledby="formulaTitle">
+            <div class="formula-heading">
+              <div>
+                <h2 id="formulaTitle">The mathematics behind your loan</h2>
+                <p>Monthly reducing-balance calculation, with your values substituted.</p>
+              </div>
+            </div>
+            <div id="emiDerivation" class="emi-derivation"></div>
+            <div class="formula-iterations">
+              <h3>Amortization Schedule and Monthly Interest</h3>
+              <div class="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Month</th>
+                      <th>Opening balance</th>
+                      <th>Annual rate</th>
+                      <th>Interest charged</th>
+                      <th>EMI</th>
+                      <th>Principal component</th>
+                      <th>Extra principal</th>
+                      <th>Closing balance</th>
+                    </tr>
+                  </thead>
+                  <tbody id="formulaBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <p class="formula-note">The schedule uses monthly interest on the opening balance. Amounts are rounded to the nearest paisa using the calculator’s rounding policy.</p>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const form = document.getElementById('loanForm');
+      const resultBox = document.getElementById('resultBox');
+      const errorBox = document.getElementById('errorBox');
+      const formulaBody = document.getElementById('formulaBody');
+
+      function formatMoney(value) {
+        return new Intl.NumberFormat('en-IN', {
+          style: 'currency',
+          currency: 'INR',
+          maximumFractionDigits: 2
+        }).format(value);
+      }
+
+      function formatNumber(value) {
+        return new Intl.NumberFormat('en-IN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }).format(value);
+      }
+
+      function formatPrecise(value) {
+        return new Intl.NumberFormat('en-IN', {
+          maximumFractionDigits: 10
+        }).format(value);
+      }
+
+      function renderEmiDerivation(principal, annualRate, paymentCount, emi) {
+        const derivation = document.getElementById('emiDerivation');
+        const monthlyRate = annualRate / 1200;
+
+        if (monthlyRate === 0) {
+          derivation.innerHTML = `
+            <p class="formula-label">At 0% interest, principal is divided equally across the instalments.</p>
+            <div class="formula-equation">${formatMoney(principal)} ÷ ${paymentCount} months = <strong>${formatMoney(emi)} per month</strong></div>
+          `;
+          return;
+        }
+
+        const growthFactor = Math.pow(1 + monthlyRate, paymentCount);
+        derivation.innerHTML = `
+          <p class="formula-label">The EMI is the payment that makes the present value of the geometric series of repayments equal to the loan principal.</p>
+          <div class="formula-equation">EMI = P × r × (1 + r)<sup>n</sup> ÷ ((1 + r)<sup>n</sup> − 1)</div>
+          <div class="formula-substitution">
+            = ${formatMoney(principal)} × (${formatNumber(annualRate)}% ÷ 1,200) × (1 + ${formatPrecise(monthlyRate)})<sup>${paymentCount}</sup>
+            ÷ ((1 + ${formatPrecise(monthlyRate)})<sup>${paymentCount}</sup> − 1)
+          </div>
+          <div class="formula-substitution">
+            = ${formatMoney(principal)} × ${formatPrecise(monthlyRate)} × ${formatPrecise(growthFactor)}
+            ÷ (${formatPrecise(growthFactor)} − 1) = <strong>${formatMoney(emi)} per month</strong>
+          </div>
+          <p class="formula-definitions">P = principal · r = monthly interest rate (${formatNumber(annualRate)}% ÷ 12 ÷ 100 = ${formatPrecise(monthlyRate)}) · n = ${paymentCount} monthly instalments</p>
+        `;
+      }
+
+      function renderFormulaIterations(schedule) {
+        formulaBody.innerHTML = '';
+        schedule.forEach((row) => {
+          const opening = Number(row.openingBalance);
+          const rate = Number(row.annualInterestRate);
+          const emi = Number(row.emi);
+          const interest = Number(row.interest);
+          const principalComponent = Number(row.principalComponent ?? row.principalRepaid);
+          const additional = Number(row.additionalPrincipalPayment || 0);
+          const closing = Number(row.closingBalance ?? row.remainingBalance);
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${row.month}</td>
+            <td>${formatMoney(opening)}</td>
+            <td>${formatNumber(rate)}%</td>
+            <td>${formatMoney(opening)} × ${formatNumber(rate)}% ÷ 1,200 = <strong>${formatMoney(interest)}</strong></td>
+            <td>${formatMoney(emi)}</td>
+            <td>${formatMoney(emi)} − ${formatMoney(interest)} = <strong>${formatMoney(principalComponent)}</strong></td>
+            <td>${formatMoney(additional)}</td>
+            <td>${formatMoney(opening)} − ${formatMoney(principalComponent)} − ${formatMoney(additional)} = <strong>${formatMoney(closing)}</strong></td>
+          `;
+          formulaBody.appendChild(tr);
+        });
+      }
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        errorBox.hidden = true;
+        errorBox.textContent = '';
+
+        const payload = {
+          principal: Number(document.getElementById('principal').value),
+          annualInterestRate: Number(document.getElementById('annualInterestRate').value),
+          tenureInYears: Number(document.getElementById('tenureInYears').value)
+        };
+
+        try {
+          const response = await fetch('/api/loans/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!response.ok) {
+            throw new Error('Please enter valid loan values.');
+          }
+
+          const data = await response.json();
+          document.getElementById('monthlyEMI').textContent = formatMoney(Number(data.monthlyEMI));
+          document.getElementById('totalAmountPaid').textContent = formatMoney(Number(data.totalAmountPaid));
+          document.getElementById('totalInterestPaid').textContent = formatMoney(Number(data.totalInterestPaid));
+
+          const schedule = data.amortizationSchedule || [];
+          renderEmiDerivation(payload.principal, payload.annualInterestRate, schedule.length, Number(data.monthlyEMI));
+          renderFormulaIterations(schedule);
+          resultBox.hidden = false;
+        } catch (error) {
+          errorBox.textContent = error.message || 'Something went wrong.';
+          errorBox.hidden = false;
+          resultBox.hidden = true;
+        }
+      });
+    </script>
+  </body>
+</html>

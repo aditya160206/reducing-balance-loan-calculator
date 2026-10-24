@@ -1,0 +1,301 @@
+:root {
+  --card: #ffffff;
+  --card-strong: #ffffff;
+  --line: #d1d1d1;
+  --text: #171717;
+  --muted: #626262;
+  --accent: #222222;
+  --accent-strong: #111111;
+  --shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  font-family: Inter, "Segoe UI", sans-serif;
+  background: #ffffff;
+  color: var(--text);
+}
+
+.app-shell {
+  width: min(100%, 960px);
+  padding: 32px 20px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: var(--shadow);
+  padding: 32px;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--accent);
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  padding: 8px 12px;
+}
+
+h1 {
+  margin: 18px 0 24px;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.06em;
+}
+
+.loan-form {
+  display: grid;
+  gap: 18px;
+}
+
+.loan-form label {
+  display: grid;
+  gap: 8px;
+  font-size: 0.96rem;
+  color: var(--muted);
+}
+
+.loan-form input {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: var(--text);
+  border-radius: 0;
+  min-height: 52px;
+  padding: 0 16px;
+  font: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.loan-form input:focus {
+  outline: none;
+  border-color: #555555;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
+}
+
+.input-with-suffix {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.input-with-suffix input {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.input-with-suffix span {
+  padding: 0 16px;
+  color: var(--muted);
+  font-weight: 600;
+  border-left: 1px solid var(--line);
+}
+
+button {
+  margin-top: 8px;
+  border: 1px solid #111111;
+  border-radius: 0;
+  background: #222222;
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  min-height: 52px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: none;
+}
+
+button:hover {
+  background: #000000;
+}
+
+.message {
+  margin-top: 18px;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 0.96rem;
+}
+
+.message.error {
+  background: #ffffff;
+  color: #222222;
+  border: 1px solid #777777;
+}
+
+.results {
+  margin-top: 30px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.result-grid > div {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  padding: 18px 16px;
+}
+
+.result-grid small {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.result-grid strong {
+  font-size: clamp(1.1rem, 2vw, 1.8rem);
+  letter-spacing: -0.04em;
+}
+
+.formula-box {
+  margin-top: 24px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: #ffffff;
+}
+
+.formula-heading h2,
+.formula-iterations h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.formula-heading p,
+.formula-note,
+.formula-definitions {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.formula-heading p {
+  margin: 7px 0 18px;
+}
+
+.emi-derivation {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: #fff;
+  overflow-wrap: anywhere;
+}
+
+.formula-label,
+.formula-substitution,
+.formula-equation {
+  margin: 0 0 12px;
+  line-height: 1.7;
+}
+
+.formula-label {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.formula-equation {
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.formula-substitution {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 0.94rem;
+}
+
+.formula-substitution strong,
+.formula-equation strong {
+  color: #111111;
+}
+
+.formula-definitions {
+  margin: 4px 0 0;
+}
+
+.formula-iterations {
+  margin-top: 22px;
+}
+
+.formula-iterations h3 {
+  margin-bottom: 12px;
+}
+
+.formula-iterations td {
+  min-width: 150px;
+  font-size: 0.88rem;
+}
+
+.formula-iterations td:first-child {
+  min-width: 60px;
+}
+
+.formula-note {
+  margin: 14px 0 0;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #a8a8a8;
+}
+
+th,
+td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.94rem;
+}
+
+thead th {
+  background: #ffffff;
+  color: var(--text);
+  font-weight: 700;
+  border-bottom: 2px solid #777777;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 22px 18px;
+    border-radius: 0;
+  }
+
+  .result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .formula-box {
+    padding: 18px 14px;
+  }
+}
