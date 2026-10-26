@@ -1,97 +1,137 @@
 # Loan Mathematics Engine
 
-## Overview
-The Loan Mathematics Engine is a simple educational project built using Java 17 and Spring Boot 3.3.x. It provides a REST API for calculating loan parameters such as monthly EMI, total payments, total interest, and an amortization schedule based on user inputs.
+A loan EMI calculator built with **Java 17, Spring Boot, and plain HTML/CSS/JavaScript**. Enter a principal, annual interest rate, and tenure to calculate the monthly EMI, total repayment, total interest, and a month-by-month amortization schedule.
 
-## Core Functionality
-The application accepts the following inputs:
-- **Principal (P)**: The initial amount of the loan.
-- **Annual Nominal Interest Rate (R)**: The interest rate expressed as a percentage.
-- **Loan Tenure (T)**: The duration of the loan in years.
+**Live app:** https://reducing-balance-loan-calculator.onrender.com/  
+**Source code:** https://github.com/aditya160206/reducing-balance-loan-calculator
 
-### Calculations
-The application calculates and displays:
-- Monthly interest rate: \( r = \frac{R}{1200} \)
-- Number of payments: \( n = 12 \times T \)
-- Monthly EMI
-- Total amount paid
-- Total interest paid
-- Month-by-month amortization schedule, showing EMI, interest, principal repaid, and remaining balance.
+## What it does
 
-### Mathematical Derivation
-The derivation of the EMI formula is based on the present value of future payments. The formula is derived from the geometric series, which allows us to express the present value of repayments in terms of the fixed monthly payment (A):
+- Calculates monthly EMI for a loan using the monthly reducing-balance method.
+- Shows total amount paid and total interest over the loan tenure.
+- Displays an amortization schedule with opening balance, annual interest rate, interest charged, EMI, principal component, additional principal, and closing balance.
+- Shows the EMI formula with the entered values substituted into the calculation.
+- Handles a zero-interest loan separately.
+- Uses Java `BigDecimal` for monetary calculations and rounds displayed monetary values to two decimal places.
 
-\[
-P = A \left[ \frac{1}{1+r} + \frac{1}{(1+r)^2} + \cdots + \frac{1}{(1+r)^n} \right]
-\]
+The web form currently asks for principal, annual interest rate, and tenure in years. The backend also contains calculation logic for fixed-rate and floating-rate requests and optional additional-principal payments; those options are not exposed as controls in the current web form.
 
-This series can be simplified using the finite geometric series identity, leading to the final EMI formula:
+## How the calculation works
 
-\[
-\boxed{A = P \frac{r(1+r)^n}{(1+r)^n - 1}}
-\]
+Let:
 
-In cases where \( r = 0 \), the formula simplifies to \( A = \frac{P}{n} \).
+- `P` = original loan principal
+- `R` = annual interest rate, expressed as a percentage
+- `r` = monthly interest rate as a decimal
+- `n` = number of monthly instalments
+- `EMI` = fixed monthly instalment
 
-## Architecture
-The project is structured as follows:
-- **Controller**: Handles HTTP requests and responses.
-- **Service**: Contains the business logic for loan calculations.
-- **DTOs**: Data Transfer Objects for request and response handling.
-- **Exception Handling**: Custom exceptions for managing errors.
+The monthly rate and number of instalments are:
 
-## Running the Application
+```text
+r = R / 1200
+n = tenure in years * 12
+```
+
+For a positive interest rate, the EMI formula is:
+
+```text
+EMI = P * r * (1 + r)^n / ((1 + r)^n - 1)
+```
+
+At 0% interest:
+
+```text
+EMI = P / n
+```
+
+Each month, the calculator computes interest from the opening balance:
+
+```text
+Monthly interest = opening balance * R / 1200
+Principal component = EMI - monthly interest
+Closing balance = opening balance - principal component - additional principal payment
+```
+
+The next month's opening balance is the previous month's closing balance. The final instalment is adjusted in the schedule to clear the remaining principal, subject to the implementation's rounding rules.
+
+## Technology
+
+- **Java 17**
+- **Spring Boot 3.3.5**
+- **Maven**
+- **HTML, CSS, and JavaScript** for the browser interface
+- **JUnit 5 / Spring Boot Test** for automated tests
+- **Docker** for containerized deployment
+
+## Project structure
+
+```text
+src/main/java/com/example/loanengine/
+  controller/   REST endpoint
+  dto/          Request and response models
+  exception/    Loan calculation exception handling
+  service/      EMI and amortization calculations
+src/main/resources/static/
+  index.html    Browser interface
+  css/          Styles
+src/test/       Automated tests
+Dockerfile      Container build and runtime
+pom.xml         Maven dependencies and build configuration
+```
+
+## Run locally
+
+Prerequisites: JDK 17 and Maven.
+
 1. Clone the repository:
-   ```
-   git clone <repository-url>
-   cd loan-mathematics-engine
+
+   ```bash
+   git clone https://github.com/aditya160206/reducing-balance-loan-calculator.git
+   cd reducing-balance-loan-calculator
    ```
 
-2. Build the project using Maven:
-   ```
-   mvn clean install
-   ```
+2. Start the application:
 
-3. Run the application:
-   ```
+   ```bash
    mvn spring-boot:run
    ```
 
-4. Access the API at `http://localhost:8080/api/loans/calculate` using a tool like Postman or curl.
+3. Open http://localhost:8080 in your browser.
 
-## Deploying the website
+To run the automated tests:
 
-The project uses a Java/Spring Boot backend and a static HTML frontend. Deploy the backend as a Docker web service and the static frontend on Vercel; a Vercel Function at `/api/loans/calculate` forwards calculator requests to the backend.
-
-### 1. Push the project to GitHub
-
-Create a GitHub repository and push the project source, including `Dockerfile`, `.dockerignore`, `vercel.json`, and `api/loans/calculate.js`. Do not commit credentials or private environment files.
-
-### 2. Deploy the Spring Boot backend on Render
-
-1. In Render, create a new **Web Service** from the GitHub repository.
-2. Select **Docker** as the runtime and use the repository-root `Dockerfile`.
-3. Deploy and wait for the service to become live.
-4. Copy the service URL, for example `https://your-loan-api.onrender.com`.
-5. Test `POST https://your-loan-api.onrender.com/api/loans/calculate` with JSON containing `principal`, `annualInterestRate`, and `tenureInYears`.
-
-The app reads Render's `PORT` environment variable and defaults to port 8080 for local use.
-
-### 3. Deploy the frontend on Vercel
-
-1. Import the same GitHub repository into Vercel.
-2. Keep the project root as the Root Directory. The checked-in `vercel.json` sets the static output directory and disables a build command.
-3. In Vercel project settings, add the environment variable `BACKEND_URL` with the Render service URL from step 2 (no path suffix is needed).
-4. Deploy. Vercel will provide a public website URL.
-5. Open the Vercel URL, calculate a sample loan, and confirm the browser's request to `/api/loans/calculate` succeeds.
-
-The Vercel endpoint is a small proxy; it keeps the browser on the Vercel origin and forwards the JSON request to the Spring Boot service. On Render's free tier, the backend may take a short time to wake after inactivity.
-
-## Testing
-JUnit tests are included to validate the functionality of the loan calculations and API endpoints. To run the tests, use:
-```
+```bash
 mvn test
 ```
 
-## Conclusion
-This project serves as a practical demonstration of loan calculations and the underlying mathematics. It is designed for educational purposes, emphasizing clarity and transparency in the calculations.
+## API
+
+The calculator endpoint is:
+
+```http
+POST /api/loans/calculate
+Content-Type: application/json
+```
+
+Example request:
+
+```json
+{
+  "principal": 6000000,
+  "annualInterestRate": 5.17,
+  "tenureInYears": 20
+}
+```
+
+The response includes the monthly EMI, total amount paid, total interest paid, and the amortization schedule. The backend validates that the principal is positive, the annual interest rate is non-negative, and the tenure is positive.
+
+## Deployment
+
+The application is configured for deployment as a **Docker web service on Render**. Spring Boot serves both the static frontend and the `/api/loans/calculate` endpoint from the same application, so the main deployment does not require a separate frontend host.
+
+For Render, create a Web Service from this repository, select Docker, and deploy using the repository-root `Dockerfile`. The service reads the `PORT` environment variable and defaults to port 8080 for local use. The live link above points to the deployed app.
+
+## Scope and assumptions
+
+This is an educational calculator, not financial advice or a lender's official quotation. Results depend on the stated rate, tenure, payment assumptions, and rounding. The basic web form models a constant-rate loan with monthly instalments; actual loan contracts may use different conventions, fees, rate-reset rules, or payment dates.
